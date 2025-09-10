@@ -13,25 +13,38 @@ class Group extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'description',
-        'owner_id',
-    ];
+    'name',
+    'description',
+    'owner_id', // ou created_by
+    'invitation_code',  // Ajouter cette ligne
+];
 
     public function owner()
     {
         return $this->belongsTo(User::class, 'owner_id');
     }
 
-    public function members(): BelongsToMany
+    public function isMember(User $user): bool
     {
-        return $this->belongsToMany(User::class, 'group_user');
+        return $this->users()->where('user_id', $user->id)->exists();
     }
 
-    // Ajouter un membre
-    public function addMember(User $user)
+
+    public function removeMember(User $user): void
     {
-        $this->members()->attach($user->id);
+        $this->users()->detach($user->id);
+    }
+    public function creator()
+{
+    // Préciser owner_id (et non created_by)
+    return $this->belongsTo(User::class, 'owner_id');
+}
+
+
+    // Ajouter un membre
+    public function addMember(User $user): void
+    {
+        $this->users()->attach($user->id);
     }
 
     public function users()

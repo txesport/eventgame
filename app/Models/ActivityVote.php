@@ -4,28 +4,25 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ActivityVote extends Model
 {
     use HasFactory;
 
+    protected $table = 'event_activity_votes'; // ← Nom correct de la table
+
     protected $fillable = [
         'event_activity_id',
         'user_id',
-        'vote'
+        'vote_type',
     ];
 
-    protected $casts = [
-        'vote' => 'boolean',
-    ];
-
-    public function eventActivity(): BelongsTo
+    public function eventActivity()
     {
-        return $this->belongsTo(EventActivity::class);
+        return $this->belongsTo(EventActivity::class, 'event_activity_id');
     }
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

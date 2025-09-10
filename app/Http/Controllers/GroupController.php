@@ -26,19 +26,20 @@ class GroupController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
 
         $group = Group::create([
-            'name' => $validated['name'],
+            'name'        => $validated['name'],
             'description' => $validated['description'],
-            'owner_id' => Auth::id(),
+            'owner_id'    => Auth::id(),    // ← ASSURER CE CHAMP
         ]);
 
         $group->addMember(Auth::user());
 
-        return redirect()->route('groups.show', $group)->with('success', 'Groupe créé avec succès !');
+        return redirect()->route('groups.show', $group)
+                        ->with('success', 'Groupe créé avec succès !');
     }
 
     public function show(Group $group)
@@ -48,8 +49,7 @@ class GroupController extends Controller
         }
 
         $group->load(['users', 'events' => function ($query) {
-            $query->where('events.is_active', true)
-                  ->orderBy('events.created_at', 'desc');
+        $query->orderBy('events.created_at', 'desc');
         }]);
 
         return view('groups.show', compact('group'));

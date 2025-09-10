@@ -129,7 +129,7 @@
                                     @foreach($event->dates->take(2) as $date)
                                         <div class="badge bg-light text-dark me-1 mb-1">
                                             <i class="bi bi-calendar-event"></i>
-                                            {{ $date->proposed_date->format('d/m/Y H:i') }}
+                                            {{ $date->date_time->format('d/m/Y H:i') }}
                                             @if($date->total_votes > 0)
                                                 <span class="text-success">({{ $date->yes_votes }}/{{ $date->total_votes }})</span>
                                             @endif

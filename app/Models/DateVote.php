@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DateVote extends Model
 {
@@ -13,19 +12,19 @@ class DateVote extends Model
     protected $fillable = [
         'event_date_id',
         'user_id',
-        'vote'
+        'vote', // boolean : true/false
     ];
 
     protected $casts = [
         'vote' => 'boolean',
     ];
 
-    public function eventDate(): BelongsTo
+    public function eventDate()
     {
-        return $this->belongsTo(EventDate::class);
+        return $this->belongsTo(EventDate::class, 'event_date_id');
     }
 
-    public function user(): BelongsTo
+    public function user()
     {
         return $this->belongsTo(User::class);
     }

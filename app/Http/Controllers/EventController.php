@@ -13,12 +13,19 @@ class EventController extends Controller
 {
     public function index()
     {
-        $events = Event::with(['group', 'creator', 'photos'])
-            ->whereHas('group.users', function($query) {
-                $query->where('user_id', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $events = Event::with([
+            'group',
+            'creator',
+            'photos',
+            'dates',
+            'activities',
+            'expenses',      // ⬅️ Ajout de la relation expenses
+        ])
+        ->whereHas('group.users', function($query) {
+            $query->where('user_id', Auth::id());
+        })
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
         return view('events.index', compact('events'));
     }

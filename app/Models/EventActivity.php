@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Event;
+use App\Models\ActivityVote;
 
 class EventActivity extends Model
 {
@@ -14,15 +16,20 @@ class EventActivity extends Model
         'name',
         'category',
         'description',
-        'is_selected',
-    ];
-
-    protected $casts = [
-        'is_selected' => 'boolean',
     ];
 
     public function event()
     {
         return $this->belongsTo(Event::class);
+    }
+
+    public function votes()
+    {
+        return $this->hasMany(ActivityVote::class, 'event_activity_id');
+    }
+
+    public function getYesVotesAttribute(): int
+    {
+        return $this->votes()->where('vote', 'yes')->count();
     }
 }

@@ -4,6 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Expense;
+use App\Models\Group;
+use App\Models\User;
+use App\Models\EventDate;
+use App\Models\EventActivity;
+use App\Models\EventPhoto;
 
 class Event extends Model
 {
@@ -18,9 +24,14 @@ class Event extends Model
     ];
 
     protected $casts = [
-        'created_at' => 'datetime',
+        'created_at' => 'datetime',  // corrigé => au lieu de =
         'updated_at' => 'datetime',
     ];
+
+    public function expenses()
+    {
+        return $this->hasMany(Expense::class);
+    }
 
     public function group()
     {
