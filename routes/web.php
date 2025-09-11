@@ -10,6 +10,7 @@ use App\Http\Controllers\EventSummaryController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\EventPhotoController;
+use App\Http\Controllers\MessageController;
 
 // Redirection de la page d'accueil
 Route::get('/', function () {
@@ -21,37 +22,35 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     // Dashboard
-    // Dashboard
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Profil utilisateur
-Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
-Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    // Profil utilisateur
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.show');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    
     // Groups routes
     Route::resource('groups', GroupController::class);
     Route::post('/groups/join', [GroupController::class, 'join'])->name('groups.join');
     Route::delete('/groups/{group}/leave', [GroupController::class, 'leave'])->name('groups.leave');
     Route::delete('/groups/{group}/members/{user}', [GroupController::class, 'removeMember'])->name('groups.remove-member');
-    
+
     // Events routes
     Route::resource('events', EventController::class);
-    
+
     // Votes routes
     Route::post('/event-dates/{eventDate}/vote', [VoteController::class, 'voteDate'])->name('dates.vote');
     Route::delete('/event-dates/{eventDate}/vote', [VoteController::class, 'removeVoteDate'])->name('dates.vote.remove');
     Route::post('/event-activities/{eventActivity}/vote', [VoteController::class, 'voteActivity'])->name('activities.vote');
     Route::delete('/event-activities/{eventActivity}/vote', [VoteController::class, 'removeVoteActivity'])->name('activities.vote.remove');
-    
+
     // Expenses routes
     Route::post('/events/{event}/expenses', [ExpenseController::class, 'store'])->name('expenses.store');
     Route::put('/expenses/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
     Route::delete('/expenses/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
     Route::get('/events/{event}/balance', [ExpenseController::class, 'getBalance'])->name('expenses.balance');
-    
+
     // Event Summary routes - PHASE 3
     Route::get('/events/{event}/summary', [EventSummaryController::class, 'show'])->name('events.summary');
     Route::post('/events/{event}/finalize', [EventSummaryController::class, 'finalize'])->name('events.finalize');
@@ -59,15 +58,17 @@ Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.
     Route::post('/events/{event}/reminders', [EventSummaryController::class, 'sendReminders'])->name('events.reminders');
     Route::get('/events/{event}/export', [EventSummaryController::class, 'export'])->name('events.export');
 
-    Route::post('/events/{event}/photos', [EventPhotoController::class, 'store'])
-         ->name('events.photos.store');
-    Route::delete('/event-photos/{photo}', [EventPhotoController::class, 'destroy'])
-         ->name('event-photos.destroy');
-    Route::patch('/event-photos/{photo}/caption', [EventPhotoController::class, 'updateCaption'])
-         ->name('event-photos.update-caption');
+    // Event Photo routes
+    Route::post('/events/{event}/photos', [EventPhotoController::class, 'store'])->name('events.photos.store');
+    Route::delete('/event-photos/{photo}', [EventPhotoController::class, 'destroy'])->name('event-photos.destroy');
+    Route::patch('/event-photos/{photo}/caption', [EventPhotoController::class, 'updateCaption'])->name('event-photos.update-caption');
+
+    // Chat de groupe
+    Route::get('/groups/{group}/messages', [MessageController::class, 'index'])->name('groups.messages.index');
+    Route::post('/groups/{group}/messages', [MessageController::class, 'store'])->name('groups.messages.store');
 });
 
-// Route pour vérification automatique des rappels (optionnelle pour cron job)
+// Route pour vérification automatique des rappels (cron job)
 Route::get('/check-reminders', [EventSummaryController::class, 'checkReminders'])->name('reminders.check');
 
 require __DIR__.'/auth.php';

@@ -130,7 +130,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Événements du groupe -->
         <div class="col-lg-4 mb-4">
             <div class="card">
@@ -189,6 +188,12 @@
                 </div>
             </div>
         </div>
+        <div class="mt-5">
+    <div class="mt-5">
+            <h4 class="mb-3"><i class="bi bi-chat-dots text-primary me-2"></i>Chat du groupe</h4>
+            @include('groups.partials.chat')
+        </div>
+</div>
     </div>
 
     <script>

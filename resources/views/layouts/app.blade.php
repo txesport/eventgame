@@ -128,5 +128,23 @@
     
     <!-- 3. App JS EN DERNIER -->
     <script defer src="{{ asset('js/app.js') }}"></script>
+    <!-- Pusher JS -->
+    <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
+    <!-- Laravel Echo -->
+    <script src="https://cdn.jsdelivr.net/npm/laravel-echo@1.11.0/dist/echo.iife.min.js"></script>
+
+    <script>
+        // Configuration Echo + Pusher self-hosted
+        window.Pusher = Pusher;
+        window.Echo = new Echo({
+            broadcaster: 'pusher',
+            key: 'local',              // VITE_PUSHER_APP_KEY
+            cluster: 'mt1',            // VITE_PUSHER_APP_CLUSTER
+            wsHost: window.location.hostname,
+            wsPort: 6001,
+            forceTLS: false,
+            disableStats: true,
+        });
+    </script>
 </body>
 </html>
