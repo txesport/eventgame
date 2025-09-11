@@ -19,7 +19,7 @@ class EventController extends Controller
             'photos',
             'dates',
             'activities',
-            'expenses',      // ⬅️ Ajout de la relation expenses
+            'expenses',      // AJOUTÉ: pour éviter les erreurs dans index.blade.php
         ])
         ->whereHas('group.users', function($query) {
             $query->where('user_id', Auth::id());
@@ -89,7 +89,14 @@ class EventController extends Controller
             abort(403, 'Vous n\'avez pas accès à cet événement.');
         }
 
-        $event->load(['group', 'creator', 'dates', 'activities', 'photos.user']);
+        $event->load([
+            'group.users', 
+            'creator', 
+            'dates.votes', 
+            'activities.votes', 
+            'photos.user',
+            'expenses.payer'  // AJOUTÉ: pour charger les dépenses avec le payeur
+        ]);
 
         return view('events.show', compact('event'));
     }

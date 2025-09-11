@@ -62,30 +62,29 @@
         </div>
     </nav>
 
-    <main class="main-container">
-        <div class="container py-4">
+        <main class="container-fluid py-4">
+            <!-- Flash Messages -->
             @if (session('success'))
-                <div class="alert alert-success alert-dismissible fade show fade-in-right" role="alert">
-                    <i class="bi bi-check-circle"></i> {{ session('success') }}
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle me-2"></i>{{ session('success') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
             @if (session('error'))
-                <div class="alert alert-danger alert-dismissible fade show fade-in-right" role="alert">
-                    <i class="bi bi-exclamation-triangle"></i> {{ session('error') }}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>{{ session('error') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
             @if (session('info'))
-                <div class="alert alert-info alert-dismissible fade show fade-in-right" role="alert">
-                    <i class="bi bi-info-circle"></i> {{ session('info') }}
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="bi bi-info-circle me-2"></i>{{ session('info') }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
             @endif
 
             {{ $slot }}
-        </div>
-    </main>
+        </main>
 
     <!-- Scripts dans l'ordre EXACT pour Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
