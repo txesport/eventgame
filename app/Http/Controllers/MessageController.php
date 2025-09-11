@@ -11,38 +11,60 @@ use App\Events\NewMessage;
 class MessageController extends Controller
 {
     public function index(Group $group)
-    {
-        if (! $group->isMember(Auth::user())) {
-            abort(403);
-        }
-
-        $messages = $group->messages()
-            ->with('user')
-            ->orderBy('created_at', 'asc')
-            ->get();
-
-        return response()->json($messages);
+{
+    if (! $group->isMember(Auth::user())) {
+        abort(403);
     }
 
-    public function store(Request $request, Group $group)
-    {
-        if (! $group->isMember(Auth::user())) {
-            abort(403);
-        }
+    $messages = $group->messages()
+        ->with('user')
+        ->orderBy('created_at', 'asc')
+        ->get()
+        ->map(function($msg) {
+            return [
+                'id' => $msg->id,
+                'content' => $msg->content,
+                'user' => [
+                    'id' => $msg->user->id,
+                    'name' => $msg->user->name,
+                    'avatar_url' => $msg->user->avatar_url,
+                ],
+                'created_at' => $msg->created_at->toDateTimeString(),
+            ];
+        });
 
-        $request->validate([
-            'content' => 'required|string|max:1000',
-        ]);
+    return response()->json($messages);
+}
 
-        $message = Message::create([
-            'group_id' => $group->id,
-            'user_id' => Auth::id(),
-            'content' => $request->input('content'),
-        ]);
+  public function store(Request $request, Group $group)
+{
+    if (! $group->isMember(Auth::user())) abort(403);
 
-        $message->load('user');
-        broadcast(new NewMessage($message))->toOthers();
+    $request->validate([
+        'content' => 'required|string|max:1000',
+    ]);
 
-        return response()->json($message, 201);
-    }
+    $message = Message::create([
+        'group_id' => $group->id,
+        'user_id' => Auth::id(),
+        'content' => $request->content,
+    ]);
+
+    $message->load('user');
+
+    broadcast(new NewMessage($message))->toOthers(); // diffusion
+
+    return response()->json([
+        'id' => $message->id,
+        'content' => $message->content,
+        'user' => [
+            'id' => $message->user->id,
+            'name' => $message->user->name,
+            'avatar_url' => $message->user->avatar_url,
+        ],
+        'created_at' => $message->created_at->toDateTimeString(),
+    ], 201);
+}
+
+
 }

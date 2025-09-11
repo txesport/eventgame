@@ -3,15 +3,12 @@
 namespace App\Events;
 
 use App\Models\Message;
-use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Broadcasting\ShouldBroadcast;
-use Illuminate\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast as ShouldBroadcastContract;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+// Remplacer ShouldBroadcast par ShouldBroadcastNow
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class NewMessage implements ShouldBroadcastNow
 {
@@ -27,13 +24,13 @@ class NewMessage implements ShouldBroadcastNow
     public function broadcastWith()
     {
         return [
-            'id' => $this->message->id,
-            'user' => [
-                'id' => $this->message->user->id,
-                'name' => $this->message->user->name,
+            'id'         => $this->message->id,
+            'content'    => $this->message->content,
+            'user'       => [
+                'id'         => $this->message->user->id,
+                'name'       => $this->message->user->name,
                 'avatar_url' => $this->message->user->avatar_url,
             ],
-            'content' => $this->message->content,
             'created_at' => $this->message->created_at->toDateTimeString(),
         ];
     }

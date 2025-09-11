@@ -64,8 +64,14 @@ Route::middleware('auth')->group(function () {
     Route::patch('/event-photos/{photo}/caption', [EventPhotoController::class, 'updateCaption'])->name('event-photos.update-caption');
 
     // Chat de groupe
-    Route::get('/groups/{group}/messages', [MessageController::class, 'index'])->name('groups.messages.index');
-    Route::post('/groups/{group}/messages', [MessageController::class, 'store'])->name('groups.messages.store');
+    Route::get('/groups/{group}/messages', [MessageController::class, 'index'])
+     ->name('messages.index')
+     ->middleware('auth');
+
+Route::post('/groups/{group}/messages', [MessageController::class, 'store'])
+     ->name('messages.store')
+     ->middleware('auth');
+
 });
 
 // Route pour vérification automatique des rappels (cron job)
