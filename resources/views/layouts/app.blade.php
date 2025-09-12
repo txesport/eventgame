@@ -127,7 +127,7 @@
     </script>
     
     <!-- 3. App JS EN DERNIER -->
-    <script defer src="{{ asset('js/app.js') }}"></script>
+    @vite(['resources/css/app.css','resources/js/app.js'])
     <!-- Pusher JS -->
     <script src="https://js.pusher.com/7.2/pusher.min.js"></script>
     <!-- Laravel Echo -->

@@ -8,9 +8,9 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 // Remplacer ShouldBroadcast par ShouldBroadcastNow
-use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 
-class NewMessage implements ShouldBroadcastNow
+class NewMessage implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -19,6 +19,11 @@ class NewMessage implements ShouldBroadcastNow
     public function __construct(Message $message)
     {
         $this->message = $message;
+    }
+
+    public function broadcastOn()
+    {
+        return new PrivateChannel('group.' . $this->message->group_id);
     }
 
     public function broadcastWith()
@@ -35,8 +40,5 @@ class NewMessage implements ShouldBroadcastNow
         ];
     }
 
-    public function broadcastOn()
-    {
-        return new PrivateChannel('group.' . $this->message->group_id);
-    }
+    
 }

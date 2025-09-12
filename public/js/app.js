@@ -1,3 +1,15 @@
+// Charger bootstrap.js (Axios + Echo/Pusher)
+require('../../resources/js/bootstrap');
+
+// Charger le composant de chat (Alpine.js)
+require('../../resources/js/chat');
+
+// Initialiser Alpine.js
+import Alpine from 'alpinejs';
+window.Alpine = Alpine;
+Alpine.start();
+
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('App.js loaded');
     

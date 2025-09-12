@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\User;
+use Illuminate\Support\Str;
 
 class Group extends Model
 {
@@ -18,6 +19,16 @@ class Group extends Model
     'owner_id', // ou created_by
     'invitation_code',  // Ajouter cette ligne
 ];
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($group) {
+            if (empty($group->invitation_code)) {
+                $group->invitation_code = strtoupper(Str::random(8));
+            }
+        });
+    }
 
     public function owner()
     {
