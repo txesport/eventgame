@@ -67,37 +67,42 @@
     </div>
 </div>
 
-
 <script>
-function chatComponent(groupId, csrfToken) {
+function chatComponent(groupId, csrfToken, currentUser) {
   return {
     messages: [],
     newMessage: '',
     loading: true,
     groupId,
+    userId: currentUser.id,
+    user: currentUser,
     lastFetchedAt: null,
 
     init() {
-      this.loadHistory()
-        .then(() => {
-          // Écoute WebSocket
-          if (window.Echo) {
-            Echo.private(`group.${this.groupId}`)
-              .listen('NewMessage', e => {
-                const m = e.message ?? e;
-                this.messages.push({
-                  id: m.id,
-                  content: m.content,
-                  user: m.user,
-                  created_at: m.created_at
-                });
-                this.$nextTick(() => this.scrollToBottom());
-              });
-          }
+      this.loadHistory().then(() => {
+        if (window.Echo) {
+          Echo.private(`group.${this.groupId}`)
+            .listen('NewMessage', e => {
+              const m = e.message ?? e;
+              this.ingestMessage(m);
+            });
+        }
+        setInterval(() => this.fetchNewMessages(), 10000);
+      });
+    },
 
-          // Polling toutes les 10 sec pour récupérer d'éventuels manqués
-          setInterval(() => this.fetchNewMessages(), 10000);
-        });
+    ingestMessage(m) {
+      if (this.messages.some(x => x.id === m.id)) return;
+      
+      // Remplace un message temporaire de même contenu
+      const idxTemp = this.messages.findIndex(x => x.sending && x.content === m.content && x.user.id === m.user.id);
+      if (idxTemp !== -1) {
+        this.messages.splice(idxTemp, 1, m);
+      } else {
+        this.messages.push(m);
+      }
+      this.lastFetchedAt = m.created_at;
+      this.$nextTick(() => this.scrollToBottom());
     },
 
     async loadHistory() {
@@ -105,70 +110,83 @@ function chatComponent(groupId, csrfToken) {
         const res = await fetch(`/groups/${this.groupId}/messages`, {
           headers: { 'Accept':'application/json','X-Requested-With':'XMLHttpRequest' }
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const data = await res.json();
         this.messages = data;
-        if (data.length) {
-          this.lastFetchedAt = data[data.length - 1].created_at;
-        }
+        if (data.length) this.lastFetchedAt = data[data.length - 1].created_at;
+      } catch (err) {
+        console.error('Historique chat :', err);
+      } finally {
         this.loading = false;
         this.$nextTick(() => this.scrollToBottom());
-      } catch(err) {
-        console.error('Historique chat :', err);
       }
     },
 
     async fetchNewMessages() {
-      if (! this.lastFetchedAt) return;
+      if (!this.lastFetchedAt) return;
       try {
-        const res = await fetch(
-          `/groups/${this.groupId}/messages?after=${encodeURIComponent(this.lastFetchedAt)}`,
-          { headers: { 'Accept':'application/json','X-Requested-With':'XMLHttpRequest' } }
-        );
+        const res = await fetch(`/groups/${this.groupId}/messages?after=${encodeURIComponent(this.lastFetchedAt)}`, {
+          headers: { 'Accept':'application/json','X-Requested-With':'XMLHttpRequest' }
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const newMsgs = await res.json();
-        if (newMsgs.length) {
-          newMsgs.forEach(m => this.messages.push(m));
-          this.lastFetchedAt = newMsgs[newMsgs.length - 1].created_at;
-          this.$nextTick(() => this.scrollToBottom());
-        }
-      } catch(err) {
+        if (newMsgs.length) newMsgs.forEach(m => this.ingestMessage(m));
+      } catch (err) {
         console.error('Fetch nouveaux messages :', err);
       }
     },
 
-    sendMessage() {
-    if (!this.newMessage.trim()) return;
+    async sendMessage() {
+      if (!this.newMessage.trim()) return;
+      const content = this.newMessage.trim();
 
-    const content = this.newMessage.trim();
-
-    // Ajouter le message localement pour qu'il s'affiche immédiatement
-    this.messages.push({
-        id: Date.now(), // ID temporaire
+      const temp = {
+        id: `tmp_${Date.now()}`,
         content,
-        user: {
-            id: {{ auth()->id() }},
-            name: 'Moi',
-            avatar_url: '{{ auth()->user()->avatar_url ?? "/default-avatar.png" }}'
-        },
-        created_at: new Date().toISOString()
-    });
+        user: this.user,
+        created_at: new Date().toISOString(),
+        sending: true
+      };
+      this.messages.push(temp);
+      this.lastFetchedAt = temp.created_at;
+      this.newMessage = '';
+      this.$nextTick(() => this.scrollToBottom());
 
-    // Vider l'input et scroller vers le bas
-    this.newMessage = '';
-    this.$nextTick(() => this.scrollToBottom());
+      try {
+        const res = await fetch(`/groups/${this.groupId}/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type':'application/json',
+            'Accept':'application/json',
+            'X-Requested-With':'XMLHttpRequest',
+            'X-CSRF-TOKEN': csrfToken,
+            'X-Socket-Id': window.Echo ? window.Echo.socketId() : ''
+          },
+          body: JSON.stringify({ content })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${await res.text()}`);
+        const saved = await res.json();
+        const idx = this.messages.findIndex(m => m.id === temp.id);
+        if (idx !== -1) this.messages.splice(idx, 1, saved);
+        this.lastFetchedAt = saved.created_at;
+      } catch (err) {
+        console.error('Envoi message :', err);
+        const idx = this.messages.findIndex(m => m.id === temp.id);
+        if (idx !== -1) this.messages.splice(idx, 1);
+        this.newMessage = content;
+      }
+    },
 
-    // Envoi au serveur
-    fetch(`/groups/${this.groupId}/messages`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRF-TOKEN': csrfToken
-        },
-        body: JSON.stringify({ content })
-    })
-    .catch(err => console.error('Envoi message :', err));
-}
+    scrollToBottom() {
+      const el = this.$refs.chatContainer;
+      if (!el) return;
+      el.scrollTop = el.scrollHeight;
+    },
+
+    formatTime(iso) {
+      return new Date(iso).toLocaleString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+    }
   }
 }
 </script>
+
